@@ -30,85 +30,64 @@ class PMTaskContainer extends Component {
 	constructor(props) {
 		super(props);
 		this.state = {pageName:"PM_TASK",isDeleteModalOpen: false, errors:null, warns:null, successes:null};
-		this.onListLimitChange = this.onListLimitChange.bind(this);
-		this.onSearchClick = this.onSearchClick.bind(this);
-		this.onSearchChange = this.onSearchChange.bind(this);
-		this.onPaginationClick = this.onPaginationClick.bind(this);
-		this.onOrderBy = this.onOrderBy.bind(this);
-		this.openDeleteModal = this.openDeleteModal.bind(this);
-		this.closeModal = this.closeModal.bind(this);
-		this.onSave = this.onSave.bind(this);
-		this.onModify = this.onModify.bind(this);
-		this.onDelete = this.onDelete.bind(this);
-		this.onEditRoles = this.onEditRoles.bind(this);
-		this.inputChange = this.inputChange.bind(this);
-		this.onCancel = this.onCancel.bind(this);
-		this.onBlur = this.onBlur.bind(this);
-		this.clearVerifyPassword = this.clearVerifyPassword.bind(this);
 	}
 
 	componentDidMount() {
-		this.props.actions.init();
+		if (this.props.history.location.state != null && this.props.history.location.state.parent != null) {
+			this.props.actions.init({parent:this.props.history.location.state.parent,parentType:this.props.history.location.state.parentType});
+		} else {
+			this.props.actions.init({});
+		}
 	}
 
-	onListLimitChange(fieldName) {
-		return (event) => {
-			let value = 20;
-			if (this.props.codeType === 'NATIVE') {
-				value = event.nativeEvent.text;
-			} else {
-				value = event.target.value;
-			}
+	onListLimitChange = (fieldName, event) => {
+		let value = 20;
+		if (this.props.codeType === 'NATIVE') {
+			value = event.nativeEvent.text;
+		} else {
+			value = event.target.value;
+		}
 
-			let listLimit = parseInt(value);
-			this.props.actions.listLimit({state:this.props.pmtask,listLimit});
-		};
+		let listLimit = parseInt(value);
+		this.props.actions.listLimit({state:this.props.pmtask,listLimit});
 	}
 
-	onPaginationClick(value) {
-		return(event) => {
-			fuLogger.log({level:'TRACE',loc:'TaskContainer::onPaginationClick',msg:"fieldName "+ value});
-			let listStart = this.props.pmtask.listStart;
-			let segmentValue = 1;
-			let oldValue = 1;
-			if (this.state["PM_TASK_PAGINATION"] != null && this.state["PM_TASK_PAGINATION"] != ""){
-				oldValue = this.state["PM_TASK_PAGINATION"];
-			}
-			if (value === "prev") {
-				segmentValue = oldValue - 1;
-			} else if (value === "next") {
-				segmentValue = oldValue + 1;
-			} else {
-				segmentValue = value;
-			}
-			listStart = ((segmentValue - 1) * this.props.pmtask.listLimit);
-			this.setState({"PM_TASK_PAGINATION":segmentValue});
-			
-			this.props.actions.list({state:this.props.pmtask,listStart});
-		};
+	onPaginationClick = (value) => {
+		fuLogger.log({level:'TRACE',loc:'TaskContainer::onPaginationClick',msg:"fieldName "+ value});
+		let listStart = this.props.pmtask.listStart;
+		let segmentValue = 1;
+		let oldValue = 1;
+		if (this.state["PM_TASK_PAGINATION"] != null && this.state["PM_TASK_PAGINATION"] != ""){
+			oldValue = this.state["PM_TASK_PAGINATION"];
+		}
+		if (value === "prev") {
+			segmentValue = oldValue - 1;
+		} else if (value === "next") {
+			segmentValue = oldValue + 1;
+		} else {
+			segmentValue = value;
+		}
+		listStart = ((segmentValue - 1) * this.props.pmtask.listLimit);
+		this.setState({"PM_TASK_PAGINATION":segmentValue});
+		
+		this.props.actions.list({state:this.props.pmtask,listStart});
 	}
 
-	onSearchChange(fieldName) {
-		return (event) => {
-			if (event.type === 'keypress' && event.key === 'Enter') {
+	onSearchChange = (fieldName, event) => {
+		if (event.type === 'keypress') {
+			if (event.key === 'Enter') {
 				this.searchClick(fieldName,event);
-			} else {
-				if (this.props.codeType === 'NATIVE') {
-					this.setState({[fieldName]:event.nativeEvent.text});
-				} else {
-					this.setState({[fieldName]:event.target.value});
-				}
 			}
-		};
+		} else {
+			if (this.props.codeType === 'NATIVE') {
+				this.setState({[fieldName]:event.nativeEvent.text});
+			} else {
+				this.setState({[fieldName]:event.target.value});
+			}
+		}
 	}
 
-	onSearchClick(fieldName) {
-		return (event) => {
-			this.searchClick(fieldName,event);
-		};
-	}
-	
-	searchClick(fieldName,event) {
+	onSearchClick = (fieldName, event) => {
 		let searchCriteria = [];
 		if (fieldName === 'PM_TASK-SEARCHBY') {
 			if (event != null) {
@@ -130,155 +109,146 @@ class PMTaskContainer extends Component {
 
 		this.props.actions.search({state:this.props.pmtask,searchCriteria});
 	}
-
-	onOrderBy(selectedOption) {
-		return (event) => {
-			fuLogger.log({level:'TRACE',loc:'TaskContainer::onOrderBy',msg:"id " + selectedOption});
-			let orderCriteria = [];
-			if (event != null) {
-				for (let o = 0; o < event.length; o++) {
-					let option = {};
-					if (event[o].label.includes("ASC")) {
-						option.orderColumn = event[o].value;
-						option.orderDir = "ASC";
-					} else if (event[o].label.includes("DESC")){
-						option.orderColumn = event[o].value;
-						option.orderDir = "DESC";
-					} else {
-						option.orderColumn = event[o].value;
-					}
-					orderCriteria.push(option);
+	
+	onOrderBy = (selectedOption, event) => {
+		fuLogger.log({level:'TRACE',loc:'TaskContainer::onOrderBy',msg:"id " + selectedOption});
+		let orderCriteria = [];
+		if (event != null) {
+			for (let o = 0; o < event.length; o++) {
+				let option = {};
+				if (event[o].label.includes("ASC")) {
+					option.orderColumn = event[o].value;
+					option.orderDir = "ASC";
+				} else if (event[o].label.includes("DESC")){
+					option.orderColumn = event[o].value;
+					option.orderDir = "DESC";
+				} else {
+					option.orderColumn = event[o].value;
 				}
-			} else {
-				let option = {orderColumn:"PM_TASK_TABLE_NAME",orderDir:"ASC"};
 				orderCriteria.push(option);
 			}
-			this.props.actions.orderBy({state:this.props.pmtask,orderCriteria});
-		};
+		} else {
+			let option = {orderColumn:"PM_TASK_TABLE_NAME",orderDir:"ASC"};
+			orderCriteria.push(option);
+		}
+		this.props.actions.orderBy({state:this.props.pmtask,orderCriteria});
 	}
 	
-	onSave() {
-		return (event) => {
-			fuLogger.log({level:'TRACE',loc:'TaskContainer::onSave',msg:"test"});
-			let errors = utils.validateFormFields(this.props.pmtask.prefForms.PM_TASK_FORM,this.props.pmtask.inputFields);
-			
-			if (errors.isValid){
-				this.props.actions.saveItem({state:this.props.pmtask});
-			} else {
-				this.setState({errors:errors.errorMap});
-			}
-		};
-	}
-	
-	onModify(item) {
-		return (event) => {
-			let id = null;
-			if (item != null && item.id != null) {
-				id = item.id;
-			}
-			fuLogger.log({level:'TRACE',loc:'TaskContainer::onModify',msg:"test"+id});
-			this.props.actions.modifyItem({id,appPrefs:this.props.appPrefs});
-		};
-	}
-	
-	onDelete(item) {
-		return (event) => {
-			fuLogger.log({level:'TRACE',loc:'TaskContainer::onDelete',msg:"test"});
-			this.setState({isDeleteModalOpen:false});
-			if (item != null && item.id != "") {
-				this.props.actions.deleteItem({state:this.props.pmtask,id:item.id});
-			}
-		};
-	}
-	
-	openDeleteModal(item) {
-		return (event) => {
-		    this.setState({isDeleteModalOpen:true,selected:item});
+	onSave = () => {
+		fuLogger.log({level:'TRACE',loc:'TaskContainer::onSave',msg:"test"});
+		let errors = utils.validateFormFields(this.props.pmtask.prefForms.PM_TASK_FORM,this.props.pmtask.inputFields);
+		
+		if (errors.isValid){
+			this.props.actions.saveItem({state:this.props.pmtask});
+		} else {
+			this.setState({errors:errors.errorMap});
 		}
 	}
 	
-	onEditRoles(item) {
-		return (event) => {
-			fuLogger.log({level:'TRACE',loc:'TaskContainer::onEditRoles',msg:"test"+item.id});
-			this.props.history.push({pathname:'/admin-roles',state:{parent:item}});
-		};
+	onModify = (item) => {
+		let id = null;
+		if (item != null && item.id != null) {
+			id = item.id;
+		}
+		fuLogger.log({level:'TRACE',loc:'TaskContainer::onModify',msg:"test"+id});
+		this.props.actions.modifyItem({id,appPrefs:this.props.appPrefs});
 	}
 	
-	closeModal() {
-		return (event) => {
-			this.setState({isDeleteModalOpen:false,errors:null,warns:null});
-		};
+	onDelete = (item) => {
+		fuLogger.log({level:'TRACE',loc:'TaskContainer::onDelete',msg:"test"});
+		this.setState({isDeleteModalOpen:false});
+		if (item != null && item.id != "") {
+			this.props.actions.deleteItem({state:this.props.pmtask,id:item.id});
+		}
 	}
 	
-	onCancel() {
-		return (event) => {
-			fuLogger.log({level:'TRACE',loc:'TaskContainer::onCancel',msg:"test"});
-			this.props.actions.list({state:this.props.pmtask});
-		};
+	openDeleteModal = (item) => {
+		this.setState({isDeleteModalOpen:true,selected:item});
 	}
 	
-	inputChange(fieldName,switchValue) {
-		return (event) => {
-			let value = "";
-			if (switchValue === "DATE") {
-				value = event.toISOString();
-			} else {
-				value = switchValue;
+	onOption = (code, item) => {
+		fuLogger.log({level:'TRACE',loc:'TaskContainer::onOption',msg:" code "+code});
+		switch(code) {
+			case 'MODIFY': {
+				this.onModify(item);
+				break;
 			}
-			utils.inputChange(this.props,fieldName,value);
-		};
+			case 'DELETE': {
+				this.openDeleteModal(item);
+				break;
+			}
+			case 'DELETEFINAL': {
+				this.onDelete(item);
+				break;
+			}
+			case 'COMMENT': {
+				this.props.history.push({pathname:'/pm-comment',state:{parent:item,parentType:"TASK"}});
+				break;
+			}
+		}
 	}
 	
-	onBlur(field) {
-		return (event) => {
-			fuLogger.log({level:'TRACE',loc:'TaskContainer::onBlur',msg:field.name});
-			let fieldName = field.name;
-			// get field and check what to do
-			if (field.optionalParams != ""){
-				let optionalParams = JSON.parse(field.optionalParams);
-				if (optionalParams.onBlur != null) {
-					if (optionalParams.onBlur.validation != null && optionalParams.onBlur.validation == "matchField") {
-						if (field.validation != "") {
-							let validation = JSON.parse(field.validation);
-							if (validation[optionalParams.onBlur.validation] != null && validation[optionalParams.onBlur.validation].id != null){
-								if (this.props.pmtask.inputFields[validation[optionalParams.onBlur.validation].id] == this.props.pmtask.inputFields[fieldName]) {
-									if (validation[optionalParams.onBlur.validation].successMsg != null) {
-										let successMap = this.state.successes;
-										if (successMap == null){
-											successMap = {};
-										}
-										successMap[fieldName] = validation[optionalParams.onBlur.validation].successMsg;
-										this.setState({successes:successMap, errors:null});
+	closeModal = () => {
+		this.setState({isDeleteModalOpen:false,errors:null,warns:null});
+	}
+	
+	onCancel = () => {
+		fuLogger.log({level:'TRACE',loc:'TaskContainer::onCancel',msg:"test"});
+		this.props.actions.list({state:this.props.pmtask});
+	}
+	
+	inputChange = (fieldName,switchValue,event) => {
+		let value = "";
+		if (switchValue === "DATE") {
+			value = event.toISOString();
+		} else {
+			value = switchValue;
+		}
+		utils.inputChange(this.props,fieldName,value);
+	}
+	
+	onBlur = (field) => {
+		fuLogger.log({level:'TRACE',loc:'TaskContainer::onBlur',msg:field.name});
+		let fieldName = field.name;
+		// get field and check what to do
+		if (field.optionalParams != ""){
+			let optionalParams = JSON.parse(field.optionalParams);
+			if (optionalParams.onBlur != null) {
+				if (optionalParams.onBlur.validation != null && optionalParams.onBlur.validation == "matchField") {
+					if (field.validation != "") {
+						let validation = JSON.parse(field.validation);
+						if (validation[optionalParams.onBlur.validation] != null && validation[optionalParams.onBlur.validation].id != null){
+							if (this.props.pmtask.inputFields[validation[optionalParams.onBlur.validation].id] == this.props.pmtask.inputFields[fieldName]) {
+								if (validation[optionalParams.onBlur.validation].successMsg != null) {
+									let successMap = this.state.successes;
+									if (successMap == null){
+										successMap = {};
 									}
-								} else {
-									if (validation[optionalParams.onBlur.validation].failMsg != null) {
-										let errorMap = this.state.errors;
-										if (errorMap == null){
-											errorMap = {};
-										}
-										errorMap[fieldName] = validation[optionalParams.onBlur.validation].failMsg;
-										this.setState({errors:errorMap, successes:null});
+									successMap[fieldName] = validation[optionalParams.onBlur.validation].successMsg;
+									this.setState({successes:successMap, errors:null});
+								}
+							} else {
+								if (validation[optionalParams.onBlur.validation].failMsg != null) {
+									let errorMap = this.state.errors;
+									if (errorMap == null){
+										errorMap = {};
 									}
+									errorMap[fieldName] = validation[optionalParams.onBlur.validation].failMsg;
+									this.setState({errors:errorMap, successes:null});
 								}
 							}
 						}
-					} else if (optionalParams.onBlur.func != null) {
-						if (optionalParams.onBlur.func == "clearVerifyPassword"){
-							this.clearVerifyPassword();
-						}
 					}
+				} else if (optionalParams.onBlur.func != null) {
+					
 				}
 			}
-			
-		};
+		}
 	}
 	
-	clearVerifyPassword() {
-	//	return (event) => {
-			fuLogger.log({level:'TRACE',loc:'TaskContainer::clearVerifyPassword',msg:"Hi there"});
-			this.setState({errors:null, successes:null});
-			this.props.actions.clearField('PM_TASK_FORM_VERIFY_PASSWORD');
-	//	}
+	goBack = () => {
+		fuLogger.log({level:'TRACE',loc:'ReleaseContainer::goBack',msg:"test"});
+		this.props.history.goBack();
 	}
 
 	render() {
@@ -308,12 +278,10 @@ class PMTaskContainer extends Component {
 				onSearchClick={this.onSearchClick}
 				onPaginationClick={this.onPaginationClick}
 				onOrderBy={this.onOrderBy}
-				openDeleteModal={this.openDeleteModal}
 				closeModal={this.closeModal}
-				onModify={this.onModify}
-				onDelete={this.onDelete}
-				onEditRoles={this.onEditRoles}
+				onOption={this.onOption}
 				inputChange={this.inputChange}
+				goBack={this.goBack}
 				session={this.props.session}
 				/>
 			);

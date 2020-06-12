@@ -21,13 +21,29 @@ import actionUtils from '../../core/common/action-utils';
 
 
 // thunks
-export function init() {
+export function init({parent,parentType}) {
   return function(dispatch) {
     let requestParams = {};
     requestParams.action = "INIT";
     requestParams.service = "PM_TASK_SVC";
     requestParams.prefTextKeys = new Array("PM_TASK_PAGE");
     requestParams.prefLabelKeys = new Array("PM_TASK_PAGE");
+    if (parent != null) {
+    	if (parentType != null && parentType === "PRODUCT") {
+    		requestParams.productId = parent.id;
+    	} else if (parentType != null && parentType === "PROJECT") {
+    		requestParams.projectId = parent.id;
+    	} else if (parentType != null && parentType === "RELEASE") {
+    		requestParams.releaseId = parent.id;
+    	} else if (parentType != null && parentType === "BACKLOG") {
+    		requestParams.backlogId = parent.id;
+    	} else if (parentType != null && parentType === "SPRINT") {
+    		requestParams.sprintId = parent.id;
+    	}
+		dispatch({type:"PM_TASK_ADD_PARENT", parent, parentType});
+	} else {
+		dispatch({type:"PM_TASK_CLEAR_PARENT"});
+	}
     let params = {};
     params.requestParams = requestParams;
     params.URI = '/api/member/callService';
@@ -69,6 +85,17 @@ export function list({state,listStart,listLimit,searchCriteria,orderCriteria,inf
 			requestParams.orderCriteria = orderCriteria;
 		} else {
 			requestParams.orderCriteria = state.orderCriteria;
+		}
+		if (state.parent != null && state.parentType != null && state.parentType === "PRODUCT") {
+			requestParams.productId = state.parent.id;
+		} else if (state.parent != null && state.parentType != null && state.parentType === "PROJECT") {
+			requestParams.projectId = state.parent.id;
+		} else if (state.parent != null && state.parentType != null && state.parentType === "RELEASE") {
+			requestParams.releaseId = state.parent.id;
+		} else if (state.parent != null && state.parentType != null && state.parentType === "BACKLOG") {
+			requestParams.backlogId = state.parent.id;
+		} else if (state.parent != null && state.parentType != null && state.parentType === "SPRINT") {
+			requestParams.sprintId = state.parent.id;
 		}
 		let userPrefChange = {"page":"users","orderCriteria":requestParams.orderCriteria,"listStart":requestParams.listStart,"listLimit":requestParams.listLimit};
 		dispatch({type:"PM_TASK_PREF_CHANGE", userPrefChange});
@@ -112,7 +139,17 @@ export function saveItem({state}) {
 	    requestParams.action = "SAVE";
 	    requestParams.service = "PM_TASK_SVC";
 	    requestParams.inputFields = state.inputFields;
-
+	    if (state.parent != null && state.parentType != null && state.parentType === "PRODUCT") {
+			requestParams.productId = state.parent.id;
+		} else if (state.parent != null && state.parentType != null && state.parentType === "PROJECT") {
+			requestParams.projectId = state.parent.id;
+		} else if (state.parent != null && state.parentType != null && state.parentType === "RELEASE") {
+			requestParams.releaseId = state.parent.id;
+		} else if (state.parent != null && state.parentType != null && state.parentType === "BACKLOG") {
+			requestParams.backlogId = state.parent.id;
+		} else if (state.parent != null && state.parentType != null && state.parentType === "SPRINT") {
+			requestParams.sprintId = state.parent.id;
+		}
 	    let params = {};
 	    params.requestParams = requestParams;
 	    params.URI = '/api/member/callService';

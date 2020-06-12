@@ -85,9 +85,15 @@ export default function usersReducer(state = {}, action) {
 										}
 									}
 								}
+								inputFields[prefForms.PM_TASK_FORM[i].name] = result;
+							}else if (prefForms.PM_TASK_FORM[i].fieldType == "DATE") {
+								let d = new Date();
+								inputFields[prefForms.PM_TASK_FORM[i].name] = d.toISOString();
+							} else {
+								inputFields[prefForms.PM_TASK_FORM[i].name] = result;
 							}
-							inputFields[prefForms.PM_TASK_FORM[i].name] = result;
 						}
+						 
 					}
 				}
 				// add id if this is existing item
@@ -118,6 +124,22 @@ export default function usersReducer(state = {}, action) {
 		}
 		case 'PM_TASK_ORDERBY': { 
 			return reducerUtils.updateOrderBy(state,action);
+		}
+		case 'PM_TASK_ADD_PARENT': {
+			if (action.parent != null) {
+				return Object.assign({}, state, {
+					parent: action.parent,
+					parentType: action.parentType
+				});
+			} else {
+		        return state;
+		    }
+		}
+		case 'PM_TASK_CLEAR_PARENT': {
+			return Object.assign({}, state, {
+				parent: null,
+				parentType: null
+			});
 		}
 		default:
 			return state;
